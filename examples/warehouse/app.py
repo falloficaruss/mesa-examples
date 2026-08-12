@@ -4,11 +4,12 @@ import solara
 from mesa.visualization import SolaraViz
 from mesa.visualization.utils import update_counter
 from warehouse.agents import InventoryAgent
+from warehouse.make_warehouse import LOADING_DOCK_COORDS
 from warehouse.model import WarehouseModel
 
 # Constants
-LOADING_DOCKS = [(0, 0, 0), (0, 2, 0), (0, 4, 0), (0, 6, 0), (0, 8, 0)]
-AXIS_LIMITS = {"x": (0, 22), "y": (0, 20), "z": (0, 5)}
+LOADING_DOCKS = LOADING_DOCK_COORDS
+AXIS_LIMITS = {"x": (0, 8), "y": (0, 8), "z": (0, 3)}
 
 model_params = {
     "rng": {
@@ -52,7 +53,10 @@ def plot_warehouse(model):
 
     # Prepare data for inventory and robot agents
     inventory_data = prepare_agent_data(model, InventoryAgent, "Inventory")
-    robot_data = prepare_agent_data(model, type(model.RobotAgent), "Robot")
+    if model.robot_agent_type is None:
+        robot_data = []
+    else:
+        robot_data = prepare_agent_data(model, model.robot_agent_type, "Robot")
 
     # Combine data into a single DataFrame
     data = pd.DataFrame(inventory_data + robot_data)

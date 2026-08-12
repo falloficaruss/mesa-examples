@@ -10,13 +10,15 @@ This reality is the motivation for meta-agents. It allows users to represent the
 
 In this simulation, robots are given tasks to take retrieve inventory items and then take those items to the loading docks.
 
-Each `RobotAgent` is made up of sub-components that are treated as separate agents. For this simulation, each robot as a `SensorAgent`, `RouterAgent`, and `WorkerAgent`.
+Each `RobotAgent` is assembled with `MetaAgents.create` from sub-components treated as separate agents: a `SensorAgent`, `RouteAgent`, and `WorkerAgent`, with typed memberships (`router` / `sensor` / `worker`).
 
 This model demonstrates deliberate meta-agent creation. It shows the basics of meta-agent creation and different ways to use and reference sub-agent and meta-agent functions and attributes. (The alliance formation demonstrates emergent meta-agent creation.)
 
-In its current configuration, agents being part of multiple meta-agents is not supported
+The membership backend supports overlapping memberships (agents in multiple meta-agents); this example still creates one group per robot.
 
-An additional item of note is that to reference the RobotAgent created in model you will see `type(self.RobotAgent)` or `type(model.RobotAgent)` in various places. If you have any ideas for how to make this more user friendly please let us know or do a pull request.
+Robots are tracked via `model.robot_agent_type` (the dynamically created meta-agent class), not `type(model.RobotAgent)`.
+
+Default layout is a compact 8×8×2 warehouse. Size and seed are controlled through `WarehouseScenario` (`rows`, `cols`, `height`) and the model `rng`.
 
 ## Installation
 
@@ -37,6 +39,6 @@ To run the model interactively, in this directory, run the following command
 ## Files
 
 - `model.py`: Contains creation of agents, the network and management of agent execution.
-- `agents.py`: Contains logic for forming alliances and creation of new agents
+- `agents.py`: Contains inventory, routing, sensing, and worker agent logic for robots.
 - `app.py`: Contains the code for the interactive Solara visualization.
 - `make_warehouse`: Generates a warehouse numpy array with loading docks, inventory, and charging stations.
