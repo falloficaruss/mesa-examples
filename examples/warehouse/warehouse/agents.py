@@ -151,7 +151,10 @@ class WorkerAgent(mesa.Agent):
             # fallback to robot's own move (wired via meta_methods)
             status = robot.move(robot.cell.coordinate, robot.path)  # type: ignore[attr-defined]
 
-        if status == "movement complete" and getattr(robot, "status", None) == "inventory":
+        if (
+            status == "movement complete"
+            and getattr(robot, "status", None) == "inventory"
+        ):
             source_coordinate = robot.cell.coordinate  # type: ignore[attr-defined]
             target_level = robot.item.cell.coordinate[2]  # type: ignore[attr-defined]
             robot.cell = self.model.warehouse[  # type: ignore[attr-defined]
@@ -174,7 +177,10 @@ class WorkerAgent(mesa.Agent):
             else:
                 robot.path = robot.find_path(robot.cell, robot.loading_dock)  # type: ignore[attr-defined]
 
-        if status == "movement complete" and getattr(robot, "status", None) == "loading":
+        if (
+            status == "movement complete"
+            and getattr(robot, "status", None) == "loading"
+        ):
             robot.carrying = None  # type: ignore[attr-defined]
             robot.status = "open"  # type: ignore[attr-defined]
             robot.path = None  # type: ignore[attr-defined]

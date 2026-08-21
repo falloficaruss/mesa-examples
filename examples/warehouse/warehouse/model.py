@@ -18,7 +18,9 @@ from .make_warehouse import (
 
 def _robot_find_path(self, start, goal):  # type: ignore[no-untyped-def]
     """Delegate path finding to the typed ``router`` member."""
-    router = next(iter(self.model.meta_agents.members_of(self, relation="router")), None)
+    router = next(
+        iter(self.model.meta_agents.members_of(self, relation="router")), None
+    )
     if router is None:
         raise RuntimeError("Robot has no router member")
     return router.find_path(start, goal)
@@ -26,7 +28,9 @@ def _robot_find_path(self, start, goal):  # type: ignore[no-untyped-def]
 
 def _robot_move(self, coord, path):  # type: ignore[no-untyped-def]
     """Delegate movement to the typed ``sensor`` member."""
-    sensor = next(iter(self.model.meta_agents.members_of(self, relation="sensor")), None)
+    sensor = next(
+        iter(self.model.meta_agents.members_of(self, relation="sensor")), None
+    )
     if sensor is None:
         raise RuntimeError("Robot has no sensor member")
     return sensor.move(coord, path)
@@ -34,7 +38,9 @@ def _robot_move(self, coord, path):  # type: ignore[no-untyped-def]
 
 def _robot_initiate_task(self, item):  # type: ignore[no-untyped-def]
     """Delegate task start to the typed ``worker`` member."""
-    worker = next(iter(self.model.meta_agents.members_of(self, relation="worker")), None)
+    worker = next(
+        iter(self.model.meta_agents.members_of(self, relation="worker")), None
+    )
     if worker is None:
         raise RuntimeError("Robot has no worker member")
     return worker.initiate_task(item)
@@ -42,7 +48,9 @@ def _robot_initiate_task(self, item):  # type: ignore[no-untyped-def]
 
 def _robot_continue_task(self):  # type: ignore[no-untyped-def]
     """Delegate task continuation to the typed ``worker`` member."""
-    worker = next(iter(self.model.meta_agents.members_of(self, relation="worker")), None)
+    worker = next(
+        iter(self.model.meta_agents.members_of(self, relation="worker")), None
+    )
     if worker is None:
         raise RuntimeError("Robot has no worker member")
     return worker.continue_task()
