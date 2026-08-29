@@ -112,7 +112,7 @@ class SensorAgent(mesa.Agent):
 
 
 class WorkerAgent(mesa.Agent):
-    """Handle inverntory pickup and delivery to the loading dock."""
+    """Handle inventory pickup and delivery to the loading dock."""
 
     def __init__(self, model, ld, cs):
         super().__init__(model)

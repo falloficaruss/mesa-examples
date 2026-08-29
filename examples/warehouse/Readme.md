@@ -16,16 +16,18 @@ This model demonstrates deliberate meta-agent creation. It shows the basics of m
 
 The membership backend supports overlapping memberships (agents in multiple meta-agents); this example still creates one group per robot.
 
-Robots are tracked via `model.robot_agent_type` (the dynamically created meta-agent class), not `type(model.RobotAgent)`.
+Robots are tracked via `model.robots` (explicit list) and are created with unique names `RobotAgent_0`, `RobotAgent_1` so string lookups are unambiguous. Each robot has typed memberships (`router`/`sensor`/`worker`) queried via `model.meta_agents.members_of(robot, relation=…)` and `groups_of(agent)`.
 
-Default layout is a compact 8×8×2 warehouse. Size and seed are controlled through `WarehouseScenario` (`rows`, `cols`, `height`) and the model `rng`.
+The membership backend (`model.membership_backend` / `model.meta_agents.backend`) tracks every `(agent, group, relation)` triplet. The app shows a shallow use: `len(model.membership_backend.as_triplets())` (6 triplets for 2 robots × 3 relations) and `model.meta_agents.query_memberships(robot)` in the “Memberships” panel.
+
+Layout is fully driven by `WarehouseScenario` (`rows`, `cols`, `height`, `rng`) and exposed as Solara sliders; `make_warehouse.get_warehouse_coords(rows, cols)` adapts dock/station placement to the scenario size.
 
 ## Installation
 
-This model requires Mesa's recommended install
+This model requires Mesa 4.0+ (meta-agents moved from `mesa.experimental` to `mesa.meta_agents`).
 
 ```
-    $ pip install 'mesa[rec]>=3'
+    $ pip install -U --pre "mesa[rec]>=4.0.0a0"
 ```
 
 ## How to Run

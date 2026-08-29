@@ -9,11 +9,7 @@ from mesa.experimental.scenarios import Scenario
 from mesa.meta_agents import MetaAgents
 
 from .agents import InventoryAgent, RouteAgent, SensorAgent, WorkerAgent
-from .make_warehouse import (
-    CHARGING_STATION_COORDS,
-    LOADING_DOCK_COORDS,
-    make_warehouse,
-)
+from .make_warehouse import get_warehouse_coords, make_warehouse
 
 
 def _robot_find_path(self, start, goal):  # type: ignore[no-untyped-def]
@@ -67,14 +63,14 @@ class WarehouseScenario(Scenario):
 class WarehouseModel(mesa.Model):
     """Model for simulating warehouse robots assembled from sub-agents."""
 
-    def __init__(self, scenario: WarehouseScenario = WarehouseScenario, rng=42):
+    def __init__(self, scenario: WarehouseScenario = WarehouseScenario):  # type: ignore[assignment]
         """Create the warehouse, inventory, and robot meta-agents."""
-        if isinstance(scenario, Scenario):
-            super().__init__(scenario=scenario)
-        else:
-            super().__init__(scenario=scenario, rng=rng)
+        super().__init__(scenario=scenario)
         self.inventory = {}
         self.meta_agents = MetaAgents(self)
+        # Expose backend for shallow inspection (triplet count, invariants).
+        # Most code should use self.meta_agents; this alias shows the
+        # underlying MembershipBackend that tracks triplets.
         self.membership_backend = self.meta_agents.backend
 
         layout = make_warehouse(
@@ -98,12 +94,17 @@ class WarehouseModel(mesa.Model):
                     if item.strip():
                         InventoryAgent(self, self.warehouse[row, col, height], item)
 
-        self.robot_agent_type: type | None = None
-        self.RobotAgent = None
+        self.robots: list = []
 
-        # One robot is created per loading dock / charging station pair.
-        for loading_dock, charging_station in zip(
-            LOADING_DOCK_COORDS, CHARGING_STATION_COORDS, strict=True
+        # One robot per dock/station pair; coords adapt to scenario size.
+        loading_docks, charging_stations = get_warehouse_coords(
+            self.scenario.rows, self.scenario.cols
+        )
+        self.loading_docks = loading_docks
+        self.charging_stations = charging_stations
+
+        for idx, (loading_dock, charging_station) in enumerate(
+            zip(loading_docks, charging_stations, strict=True)
         ):
             router = RouteAgent(self)
             sensor = SensorAgent(self)
@@ -113,8 +114,15 @@ class WarehouseModel(mesa.Model):
                 self.warehouse[charging_station],
             )
 
+            # Unique class name per robot keeps string lookups unambiguous
+            # (mesa warns that reusing the same name with disjoint members
+            # creates distinct groups with the same name). For this shallow
+            # example we keep two robots; unique names mirror
+            # alliance_formation's f"MetaAgentLevel{level}_{sig}" pattern.
+            class_name = f"RobotAgent_{idx}"
+
             meta = self.meta_agents.create(
-                "RobotAgent",
+                class_name,
                 [router, sensor, worker],
                 CellAgent,
                 meta_attributes={
@@ -142,21 +150,28 @@ class WarehouseModel(mesa.Model):
             if meta is None:
                 continue
 
-            if self.robot_agent_type is None:
-                self.robot_agent_type = type(meta)
-
-            self.RobotAgent = meta
+            self.robots.append(meta)
 
     def central_move(self, robot):
         """Delegate path execution to the robot's worker role."""
         robot.move(robot.cell.coordinate, robot.path)
 
+    @property
+    def triplet_count(self) -> int:
+        """Number of membership triplets tracked by the backend."""
+
+        return len(self.membership_backend.as_triplets())
+
     def step(self):
         """Advance the model by one step."""
-        if self.robot_agent_type is None:
+        # Iterate over the explicit robot list so unique class names
+        # (RobotAgent_0, RobotAgent_1) both get stepped. Using
+        # agents_by_type would only cover the first type when names are
+        # unique.
+        if not self.robots:
             return
 
-        for robot in self.agents_by_type[self.robot_agent_type]:
+        for robot in list(self.robots):
             agent_list = self.agents_by_type[InventoryAgent].to_list()
 
             if robot.status == "open":
